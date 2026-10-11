@@ -1,4 +1,5 @@
 import React from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
 import { Navbar } from './components/Navbar';
 import { BrokeModeBanner } from './components/BrokeModeBanner';
@@ -13,11 +14,12 @@ import { SurvivalCoach } from './components/SurvivalCoach';
 import { SimulatorModal } from './components/SimulatorModal';
 import { LifeEventsDrawer } from './components/LifeEventsDrawer';
 import { MonthEndModal } from './components/MonthEndModal';
+import { AuthModal } from './components/AuthModal';
 
 function MainApp() {
   return (
     <div className="min-h-screen bg-[#07080d] text-slate-100 flex flex-col font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
-      {/* Top Navigation */}
+      {/* Top Navigation with Auth profile & controls */}
       <Navbar />
 
       {/* Broke Mode Alert Protocol */}
@@ -67,14 +69,17 @@ function MainApp() {
       <SimulatorModal />
       <LifeEventsDrawer />
       <MonthEndModal />
+      <AuthModal />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <FinanceProvider>
-      <MainApp />
-    </FinanceProvider>
+    <AuthProvider>
+      <FinanceProvider>
+        <MainApp />
+      </FinanceProvider>
+    </AuthProvider>
   );
 }

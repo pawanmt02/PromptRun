@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
 import { SCENARIO_PRESETS } from '../data/initialData';
 import {
   Calendar,
@@ -9,7 +10,11 @@ import {
   Sparkles,
   ShieldAlert,
   ChevronRight,
-  Wand2
+  Wand2,
+  LogIn,
+  LogOut,
+  User,
+  ChevronDown
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -27,6 +32,27 @@ export const Navbar: React.FC = () => {
     setIsSimulatorOpen,
     triggerRandomEvent
   } = useFinance();
+
+  const {
+    user,
+    isAuthenticated,
+    logout,
+    openAuthModal
+  } = useAuth();
+
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-800/80 bg-[#07080d]/90 backdrop-blur-md px-4 lg:px-8 py-3 transition-colors">
@@ -160,6 +186,82 @@ export const Navbar: React.FC = () => {
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+
+          {/* Auth: User Profile Pill or Login Button */}
+          {isAuthenticated && user ? (
+            <div className="relative" ref={profileMenuRef}>
+              <button
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/50 transition-all text-xs"
+                title="Account Settings & Logout"
+              >
+                <div className="relative">
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-6 h-6 rounded-lg object-cover bg-slate-800 border border-slate-700"
+                  />
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-slate-950 absolute -bottom-0.5 -right-0.5" />
+                </div>
+                <span className="font-semibold text-slate-200 hidden sm:inline max-w-[90px] truncate">
+                  {user.name}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400" />
+              </button>
+
+              {/* Profile Dropdown Menu */}
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-64 glass-panel rounded-2xl border border-slate-800 p-3 shadow-2xl shadow-black/80 z-50 text-xs animate-slide-up">
+                  <div className="flex items-center gap-2.5 pb-2.5 mb-2.5 border-b border-slate-800">
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-9 h-9 rounded-xl object-cover bg-slate-800 border border-slate-700"
+                    />
+                    <div className="overflow-hidden">
+                      <div className="font-bold text-white truncate">{user.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{user.email}</div>
+                      <div className="text-[10px] text-indigo-400 font-mono mt-0.5">
+                        {user.campusOrCity}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        openAuthModal();
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-xl hover:bg-slate-800/80 text-slate-300 hover:text-white text-left flex items-center gap-2 transition-colors"
+                    >
+                      <User className="w-3.5 h-3.5 text-indigo-400" />
+                      <span>Switch Account / Persona</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setIsProfileMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-xl hover:bg-rose-950/40 text-rose-300 hover:text-rose-200 text-left flex items-center gap-2 transition-colors font-semibold"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/25 active:scale-95 transition-all"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Log In</span>
+            </button>
+          )}
         </div>
       </div>
     </header>
